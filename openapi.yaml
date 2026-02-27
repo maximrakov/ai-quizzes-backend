@@ -1,0 +1,332 @@
+openapi: 3.0.3
+info:
+  title: AI Quizzes API
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+
+paths:
+  /user:
+    post:
+      summary: Создать пользователя
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              username: ivan
+              password: secret123
+              role: mentor
+      responses:
+        '201':
+          description: Пользователь создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Некорректный JSON
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /user/{userId}/quizzes:
+    get:
+      summary: Получить квизы пользователя (назначенные)
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID пользователя
+      responses:
+        '200':
+          description: Список квизов пользователя
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QuizResponse'
+        '400':
+          description: Некорректный ID пользователя
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /user/{userId}/quizzes/created:
+    get:
+      summary: Получить квизы, созданные ментором
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID пользователя с ролью mentor
+      responses:
+        '200':
+          description: Список квизов, созданных данным ментором
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QuizResponse'
+        '400':
+          description: Некорректный ID пользователя
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /user/{userId}/quizzes/assigned:
+    get:
+      summary: Получить квизы, назначенные студенту
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID пользователя с ролью student
+      responses:
+        '200':
+          description: Список квизов, назначенных данному студенту
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QuizResponse'
+        '400':
+          description: Некорректный ID пользователя
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /quiz:
+    get:
+      summary: Получить все квизы
+      tags:
+        - Quizzes
+      responses:
+        '200':
+          description: Список всех квизов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QuizResponse'
+        '500':
+          description: Внутренняя ошибка сервера
+
+    post:
+      summary: Создать квиз
+      description: Создать квиз может только пользователь с ролью mentor.
+      tags:
+        - Quizzes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateQuizRequest'
+            example:
+              question: Что такое горутина в Go?
+              options:
+                - Тип данных
+                - Легковесный поток выполнения
+                - Интерфейс
+                - Пакет стандартной библиотеки
+              correct_answer: Легковесный поток выполнения
+              creator_id: 1
+      responses:
+        '201':
+          description: Квиз создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizResponse'
+        '400':
+          description: Некорректный JSON
+        '500':
+          description: >
+            Внутренняя ошибка сервера.
+            Возможные причины: пользователь не найден, пользователь не является ментором.
+
+  /quiz/{quizId}:
+    get:
+      summary: Получить квиз по ID
+      tags:
+        - Quizzes
+      parameters:
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID квиза
+      responses:
+        '200':
+          description: Квиз найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizResponse'
+        '400':
+          description: Некорректный ID квиза
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /quiz/{quizId}/assign:
+    post:
+      summary: Назначить квиз студенту
+      description: >
+        Назначить квиз студенту может только пользователь с ролью mentor.
+        Квиз может быть назначен только пользователю с ролью student.
+        Повторное назначение того же квиза тому же студенту игнорируется.
+      tags:
+        - Quizzes
+      parameters:
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID квиза
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignQuizRequest'
+            example:
+              student_id: 2
+              mentor_id: 1
+      responses:
+        '204':
+          description: Квиз успешно назначен
+        '400':
+          description: Некорректный ID квиза или некорректный JSON
+        '500':
+          description: >
+            Внутренняя ошибка сервера.
+            Возможные причины: пользователь не найден, mentor_id не является ментором,
+            student_id не является студентом.
+
+components:
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - password
+        - role
+      properties:
+        username:
+          type: string
+          example: ivan
+        password:
+          type: string
+          example: secret123
+        role:
+          type: string
+          enum:
+            - student
+            - mentor
+          example: mentor
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: ivan
+        role:
+          type: string
+          enum:
+            - student
+            - mentor
+          example: mentor
+
+    CreateQuizRequest:
+      type: object
+      required:
+        - question
+        - options
+        - correct_answer
+        - creator_id
+      properties:
+        question:
+          type: string
+          example: Что такое горутина в Go?
+        options:
+          type: array
+          items:
+            type: string
+          minItems: 2
+          example:
+            - Тип данных
+            - Легковесный поток выполнения
+            - Интерфейс
+            - Пакет стандартной библиотеки
+        correct_answer:
+          type: string
+          description: Должен совпадать с одним из элементов options
+          example: Легковесный поток выполнения
+        creator_id:
+          type: integer
+          description: ID пользователя с ролью mentor
+          example: 1
+
+    AssignQuizRequest:
+      type: object
+      required:
+        - student_id
+        - mentor_id
+      properties:
+        student_id:
+          type: integer
+          description: ID пользователя с ролью student
+          example: 2
+        mentor_id:
+          type: integer
+          description: ID пользователя с ролью mentor
+          example: 1
+
+    QuizResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        question:
+          type: string
+          example: Что такое горутина в Go?
+        options:
+          type: array
+          items:
+            type: string
+          example:
+            - Тип данных
+            - Легковесный поток выполнения
+            - Интерфейс
+            - Пакет стандартной библиотеки
+        correct_answer:
+          type: string
+          example: Легковесный поток выполнения
+        creator_id:
+          type: integer
+          example: 1

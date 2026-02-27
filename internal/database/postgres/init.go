@@ -22,6 +22,20 @@ func (i *Initializator) InitDB(ctx context.Context) error {
     		role VARCHAR(127) NOT NULL
 		);
 		`,
+		`CREATE TABLE IF NOT EXISTS quizzes (
+			id SERIAL PRIMARY KEY,
+			question TEXT NOT NULL,
+			options JSONB NOT NULL,
+			correct_answer VARCHAR(255) NOT NULL,
+			creator_id INTEGER NOT NULL REFERENCES users(id)
+		);
+		`,
+		`CREATE TABLE IF NOT EXISTS user_quizzes (
+			user_id INTEGER NOT NULL REFERENCES users(id),
+			quiz_id INTEGER NOT NULL REFERENCES quizzes(id),
+			PRIMARY KEY (user_id, quiz_id)
+		);
+		`,
 	}
 
 	for _, query := range initQuery {
