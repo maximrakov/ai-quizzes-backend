@@ -59,7 +59,7 @@ func main() {
 
 	server := &http.Server{
 		Addr:    ":8080",
-		Handler: mux,
+		Handler: handler.LoggingMiddleware(appCtx.Logger, mux),
 	}
 
 	err = server.ListenAndServe()
