@@ -48,6 +48,13 @@ func (i *Initializator) InitDB(ctx context.Context) error {
 			PRIMARY KEY (user_id, quiz_id)
 		);
 		`,
+		`CREATE TABLE IF NOT EXISTS assignments (
+			id SERIAL PRIMARY KEY,
+			quiz_id INTEGER NOT NULL REFERENCES quizzes(id),
+			student_id INTEGER NOT NULL REFERENCES users(id),
+			UNIQUE (quiz_id, student_id)
+		);
+		`,
 	}
 
 	for _, query := range initQuery {
