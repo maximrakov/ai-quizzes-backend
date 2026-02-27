@@ -36,6 +36,58 @@ paths:
 
   /user/{userId}/quizzes:
     get:
+      summary: Получить квизы пользователя (назначенные)
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID пользователя
+      responses:
+        '200':
+          description: Список квизов пользователя
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QuizResponse'
+        '400':
+          description: Некорректный ID пользователя
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /user/{userId}/quizzes/created:
+    get:
+      summary: Получить квизы, созданные ментором
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID пользователя с ролью mentor
+      responses:
+        '200':
+          description: Список квизов, созданных данным ментором
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QuizResponse'
+        '400':
+          description: Некорректный ID пользователя
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /user/{userId}/quizzes/assigned:
+    get:
       summary: Получить квизы, назначенные студенту
       tags:
         - Users
@@ -48,7 +100,7 @@ paths:
           description: ID пользователя с ролью student
       responses:
         '200':
-          description: Список назначенных квизов
+          description: Список квизов, назначенных данному студенту
           content:
             application/json:
               schema:
@@ -110,6 +162,30 @@ paths:
           description: >
             Внутренняя ошибка сервера.
             Возможные причины: пользователь не найден, пользователь не является ментором.
+
+  /quiz/{quizId}:
+    get:
+      summary: Получить квиз по ID
+      tags:
+        - Quizzes
+      parameters:
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID квиза
+      responses:
+        '200':
+          description: Квиз найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizResponse'
+        '400':
+          description: Некорректный ID квиза
+        '500':
+          description: Внутренняя ошибка сервера
 
   /quiz/{quizId}/assign:
     post:

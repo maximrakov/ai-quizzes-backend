@@ -18,6 +18,7 @@ type Repository interface {
 	FindAll(ctx context.Context) ([]*model.Quiz, error)
 	AssignToUser(ctx context.Context, quizId, userId int) error
 	FindByUserId(ctx context.Context, userId int) ([]*model.Quiz, error)
+	FindByCreatorId(ctx context.Context, creatorId int) ([]*model.Quiz, error)
 }
 
 type UserRepository interface {
@@ -69,6 +70,14 @@ func (s *service) Assign(ctx context.Context, quizId, studentId, mentorId int) e
 
 func (s *service) FindAll(ctx context.Context) ([]*model.Quiz, error) {
 	return s.repo.FindAll(ctx)
+}
+
+func (s *service) FindById(ctx context.Context, id int) (*model.Quiz, error) {
+	return s.repo.FindById(ctx, id)
+}
+
+func (s *service) FindByCreatorId(ctx context.Context, creatorId int) ([]*model.Quiz, error) {
+	return s.repo.FindByCreatorId(ctx, creatorId)
 }
 
 func (s *service) FindByUserId(ctx context.Context, userId int) ([]*model.Quiz, error) {

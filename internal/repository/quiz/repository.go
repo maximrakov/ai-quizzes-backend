@@ -89,6 +89,33 @@ func (r *repository) AssignToUser(ctx context.Context, quizId, userId int) error
 	return err
 }
 
+func (r *repository) FindByCreatorId(ctx context.Context, creatorId int) ([]*model.Quiz, error) {
+	rows, err := r.postgres.Pool.Query(ctx,
+		"SELECT id, question, options, correct_answer, creator_id FROM quizzes WHERE creator_id = $1",
+		creatorId,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var quizzes []*model.Quiz
+	for rows.Next() {
+		quiz := &model.Quiz{}
+		var optionsRaw []byte
+
+		if err = rows.Scan(&quiz.Id, &quiz.Question, &optionsRaw, &quiz.CorrectAnswer, &quiz.CreatorId); err != nil {
+			return nil, err
+		}
+		if err = json.Unmarshal(optionsRaw, &quiz.Options); err != nil {
+			return nil, err
+		}
+		quizzes = append(quizzes, quiz)
+	}
+
+	return quizzes, nil
+}
+
 func (r *repository) FindByUserId(ctx context.Context, userId int) ([]*model.Quiz, error) {
 	rows, err := r.postgres.Pool.Query(ctx,
 		`SELECT q.id, q.question, q.options, q.correct_answer, q.creator_id
