@@ -29,3 +29,15 @@ func (r *repository) Create(ctx context.Context, user *model.User) (*model.User,
 	fmt.Println(user)
 	return user, nil
 }
+
+func (r *repository) FindById(ctx context.Context, id int) (*model.User, error) {
+	user := &model.User{}
+	err := r.postgres.Pool.QueryRow(ctx, "SELECT id, nickname, password, role FROM users WHERE id = $1", id).
+		Scan(&user.Id, &user.Nickname, &user.Password, &user.Role)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
