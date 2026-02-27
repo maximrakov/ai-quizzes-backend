@@ -21,7 +21,11 @@ type AssignmentHandler interface {
 	FindByStudentId(http.ResponseWriter, *http.Request)
 }
 
-func RegisterRoutes(mux *http.ServeMux, userHandler UserHandler, quizHandler QuizHandler, assignmentHandler AssignmentHandler) {
+type AttemptHandler interface {
+	Create(http.ResponseWriter, *http.Request)
+}
+
+func RegisterRoutes(mux *http.ServeMux, userHandler UserHandler, quizHandler QuizHandler, assignmentHandler AssignmentHandler, attemptHandler AttemptHandler) {
 	mux.HandleFunc("POST /user", userHandler.Create)
 
 	mux.HandleFunc("POST /quiz", quizHandler.Create)
@@ -34,4 +38,6 @@ func RegisterRoutes(mux *http.ServeMux, userHandler UserHandler, quizHandler Qui
 	mux.HandleFunc("POST /assignment", assignmentHandler.Create)
 	mux.HandleFunc("GET /assignment/{id}", assignmentHandler.FindById)
 	mux.HandleFunc("GET /user/{userId}/assignments", assignmentHandler.FindByStudentId)
+
+	mux.HandleFunc("POST /attempt", attemptHandler.Create)
 }

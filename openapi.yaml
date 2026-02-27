@@ -276,6 +276,42 @@ paths:
         '500':
           description: Внутренняя ошибка сервера
 
+  /attempt:
+    post:
+      summary: Создать попытку выполнения квиза
+      description: >
+        Принимает ID назначения и ответы студента на вопросы квиза.
+        Возвращает попытку с результатом, списком правильно и неправильно
+        отвеченных вопросов, а также итоговым баллом (0–100).
+      tags:
+        - Attempts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAttemptRequest'
+            example:
+              assignment_id: 1
+              answers:
+                - question_id: 1
+                  answer_number: 2
+                - question_id: 2
+                  answer_number: 1
+      responses:
+        '201':
+          description: Попытка создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttemptResponse'
+        '400':
+          description: Некорректный JSON
+        '500':
+          description: >
+            Внутренняя ошибка сервера.
+            Возможные причины: назначение не найдено, квиз не найден, пользователь не найден.
+
 components:
   schemas:
     RegisterRequest:
@@ -453,3 +489,81 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/QuestionResponse'
+
+    UserAnswerRequest:
+      type: object
+      required:
+        - question_id
+        - answer_number
+      properties:
+        question_id:
+          type: integer
+          description: ID вопроса
+          example: 1
+        answer_number:
+          type: integer
+          description: Номер варианта ответа, выбранного студентом
+          example: 2
+
+    CreateAttemptRequest:
+      type: object
+      required:
+        - assignment_id
+        - answers
+      properties:
+        assignment_id:
+          type: integer
+          description: ID назначения
+          example: 1
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserAnswerRequest'
+
+    AttemptUserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 2
+        nickname:
+          type: string
+          example: ivan
+
+    AttemptQuizResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Основы Go
+
+    AttemptResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        user:
+          $ref: '#/components/schemas/AttemptUserResponse'
+        quiz:
+          $ref: '#/components/schemas/AttemptQuizResponse'
+        score:
+          type: number
+          format: float
+          description: Результат в процентах (0–100)
+          example: 75.0
+        correct_question_ids:
+          type: array
+          items:
+            type: integer
+          description: ID вопросов, на которые был дан правильный ответ
+          example: [1, 3]
+        wrong_question_ids:
+          type: array
+          items:
+            type: integer
+          description: ID вопросов, на которые был дан неправильный ответ
+          example: [2]
