@@ -12,7 +12,7 @@ import (
 )
 
 type Service interface {
-	Create(ctx context.Context, question string, options []string, correctAnswer string, creatorId int) (*model.Quiz, error)
+	Create(ctx context.Context, title string, creatorId int, questions []model.Question) (*model.Quiz, error)
 	Assign(ctx context.Context, quizId, studentId, mentorId int) error
 	FindAll(ctx context.Context) ([]*model.Quiz, error)
 	FindById(ctx context.Context, id int) (*model.Quiz, error)
@@ -36,7 +36,8 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	quiz, err := h.service.Create(context.Background(), input.Question, input.Options, input.CorrectAnswer, input.CreatorId)
+	questions := dto.ToQuestions(input.Questions)
+	quiz, err := h.service.Create(context.Background(), input.Title, input.CreatorId, questions)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
