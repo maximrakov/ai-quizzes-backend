@@ -1,18 +1,31 @@
 package model
 
-type Quiz struct {
-	Id            int
-	Question      string
-	Options       []string
-	CorrectAnswer string
-	CreatorId     int
+type AnswerOption struct {
+	Id         int
+	QuestionId int
+	Text       string
+	Number     int
 }
 
-func NewQuiz(question string, options []string, correctAnswer string, creatorId int) *Quiz {
+type Question struct {
+	Id                  int
+	QuizId              int
+	Text                string
+	CorrectAnswerNumber int
+	Options             []AnswerOption
+}
+
+type Quiz struct {
+	Id        int
+	Title     string
+	CreatorId int
+	Questions []Question
+}
+
+func NewQuiz(title string, creatorId int, questions []Question) *Quiz {
 	return &Quiz{
-		Question:      question,
-		Options:       options,
-		CorrectAnswer: correctAnswer,
-		CreatorId:     creatorId,
+		Title:     title,
+		CreatorId: creatorId,
+		Questions: questions,
 	}
 }

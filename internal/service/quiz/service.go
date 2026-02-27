@@ -34,7 +34,7 @@ func NewService(repo Repository, userRepo UserRepository) *service {
 	return &service{repo: repo, userRepo: userRepo}
 }
 
-func (s *service) Create(ctx context.Context, question string, options []string, correctAnswer string, creatorId int) (*model.Quiz, error) {
+func (s *service) Create(ctx context.Context, title string, creatorId int, questions []model.Question) (*model.Quiz, error) {
 	creator, err := s.userRepo.FindById(ctx, creatorId)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func (s *service) Create(ctx context.Context, question string, options []string,
 		return nil, ErrNotMentor
 	}
 
-	quiz := model.NewQuiz(question, options, correctAnswer, creatorId)
+	quiz := model.NewQuiz(title, creatorId, questions)
 	return s.repo.Create(ctx, quiz)
 }
 

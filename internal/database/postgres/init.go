@@ -24,10 +24,22 @@ func (i *Initializator) InitDB(ctx context.Context) error {
 		`,
 		`CREATE TABLE IF NOT EXISTS quizzes (
 			id SERIAL PRIMARY KEY,
-			question TEXT NOT NULL,
-			options JSONB NOT NULL,
-			correct_answer VARCHAR(255) NOT NULL,
+			title TEXT NOT NULL,
 			creator_id INTEGER NOT NULL REFERENCES users(id)
+		);
+		`,
+		`CREATE TABLE IF NOT EXISTS questions (
+			id SERIAL PRIMARY KEY,
+			quiz_id INTEGER NOT NULL REFERENCES quizzes(id),
+			text TEXT NOT NULL,
+			correct_answer_number INTEGER NOT NULL
+		);
+		`,
+		`CREATE TABLE IF NOT EXISTS answer_options (
+			id SERIAL PRIMARY KEY,
+			question_id INTEGER NOT NULL REFERENCES questions(id),
+			text TEXT NOT NULL,
+			number INTEGER NOT NULL
 		);
 		`,
 		`CREATE TABLE IF NOT EXISTS user_quizzes (

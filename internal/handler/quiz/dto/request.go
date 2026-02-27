@@ -1,10 +1,20 @@
 package dto
 
+type AnswerOptionRequest struct {
+	Text   string `json:"text"`
+	Number int    `json:"number"`
+}
+
+type QuestionRequest struct {
+	Text                string                `json:"text"`
+	CorrectAnswerNumber int                   `json:"correct_answer_number"`
+	Options             []AnswerOptionRequest `json:"options"`
+}
+
 type CreateQuizRequest struct {
-	Question      string   `json:"question"`
-	Options       []string `json:"options"`
-	CorrectAnswer string   `json:"correct_answer"`
-	CreatorId     int      `json:"creator_id"`
+	Title     string            `json:"title"`
+	CreatorId int               `json:"creator_id"`
+	Questions []QuestionRequest `json:"questions"`
 }
 
 type AssignQuizRequest struct {

@@ -141,14 +141,20 @@ paths:
             schema:
               $ref: '#/components/schemas/CreateQuizRequest'
             example:
-              question: Что такое горутина в Go?
-              options:
-                - Тип данных
-                - Легковесный поток выполнения
-                - Интерфейс
-                - Пакет стандартной библиотеки
-              correct_answer: Легковесный поток выполнения
+              title: Основы Go
               creator_id: 1
+              questions:
+                - text: Что такое горутина в Go?
+                  correct_answer_number: 2
+                  options:
+                    - text: Тип данных
+                      number: 1
+                    - text: Легковесный поток выполнения
+                      number: 2
+                    - text: Интерфейс
+                      number: 3
+                    - text: Пакет стандартной библиотеки
+                      number: 4
       responses:
         '201':
           description: Квиз создан
@@ -261,35 +267,59 @@ components:
             - mentor
           example: mentor
 
-    CreateQuizRequest:
+    AnswerOptionRequest:
       type: object
       required:
-        - question
-        - options
-        - correct_answer
-        - creator_id
+        - text
+        - number
       properties:
-        question:
+        text:
+          type: string
+          example: Легковесный поток выполнения
+        number:
+          type: integer
+          description: Порядковый номер варианта ответа в вопросе
+          example: 2
+
+    QuestionRequest:
+      type: object
+      required:
+        - text
+        - correct_answer_number
+        - options
+      properties:
+        text:
           type: string
           example: Что такое горутина в Go?
+        correct_answer_number:
+          type: integer
+          description: Номер правильного варианта ответа
+          example: 2
         options:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/AnswerOptionRequest'
           minItems: 2
-          example:
-            - Тип данных
-            - Легковесный поток выполнения
-            - Интерфейс
-            - Пакет стандартной библиотеки
-        correct_answer:
+
+    CreateQuizRequest:
+      type: object
+      required:
+        - title
+        - creator_id
+        - questions
+      properties:
+        title:
           type: string
-          description: Должен совпадать с одним из элементов options
-          example: Легковесный поток выполнения
+          example: Основы Go
         creator_id:
           type: integer
           description: ID пользователя с ролью mentor
           example: 1
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionRequest'
+          minItems: 1
 
     AssignQuizRequest:
       type: object
@@ -306,27 +336,55 @@ components:
           description: ID пользователя с ролью mentor
           example: 1
 
+    AnswerOptionResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        question_id:
+          type: integer
+          example: 1
+        text:
+          type: string
+          example: Легковесный поток выполнения
+        number:
+          type: integer
+          example: 2
+
+    QuestionResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        quiz_id:
+          type: integer
+          example: 1
+        text:
+          type: string
+          example: Что такое горутина в Go?
+        correct_answer_number:
+          type: integer
+          example: 2
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnswerOptionResponse'
+
     QuizResponse:
       type: object
       properties:
         id:
           type: integer
           example: 1
-        question:
+        title:
           type: string
-          example: Что такое горутина в Go?
-        options:
-          type: array
-          items:
-            type: string
-          example:
-            - Тип данных
-            - Легковесный поток выполнения
-            - Интерфейс
-            - Пакет стандартной библиотеки
-        correct_answer:
-          type: string
-          example: Легковесный поток выполнения
+          example: Основы Go
         creator_id:
           type: integer
           example: 1
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionResponse'
