@@ -65,7 +65,7 @@ func main() {
 	}
 
 	//service init
-	userService := userS.NewService(userRepo)
+	userService := userS.NewService(userRepo, appCtx.JwtSecret)
 	quizService := quizS.NewService(quizRepo, userRepo, aiClient)
 	assignmentService := assignmentS.NewService(assignmentRepo, userRepo)
 	attemptService := attemptS.NewService(attemptRepo, assignmentRepo, quizRepo, userRepo)
@@ -78,7 +78,7 @@ func main() {
 
 	//init server
 	mux := http.NewServeMux()
-	handler.RegisterRoutes(mux, userHandler, quizHandler, assignmentHandler, attemptHandler)
+	handler.RegisterRoutes(mux, appCtx.JwtSecret, userHandler, quizHandler, assignmentHandler, attemptHandler)
 
 	server := &http.Server{
 		Addr:    ":8080",

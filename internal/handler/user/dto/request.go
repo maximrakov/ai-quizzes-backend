@@ -7,3 +7,8 @@ type RegisterRequest struct {
 	Password string     `json:"password"`
 	Role     model.Role `json:"role"`
 }
+
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}

@@ -41,3 +41,15 @@ func (r *repository) FindById(ctx context.Context, id int) (*model.User, error) 
 
 	return user, nil
 }
+
+func (r *repository) FindByNickname(ctx context.Context, nickname string) (*model.User, error) {
+	user := &model.User{}
+	err := r.postgres.Pool.QueryRow(ctx, "SELECT id, nickname, password, role FROM users WHERE nickname = $1", nickname).
+		Scan(&user.Id, &user.Nickname, &user.Password, &user.Role)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}

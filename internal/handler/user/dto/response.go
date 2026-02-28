@@ -5,3 +5,7 @@ type UserResponse struct {
 	Username string `json:"username"`
 	Role     string `json:"role"`
 }
+
+type LoginResponse struct {
+	Token string `json:"token"`
+}
