@@ -46,6 +46,25 @@ func ToQuizResponses(quizzes []*model.Quiz) []QuizResponse {
 	return responses
 }
 
+func ToQuestionRequests(questions []model.Question) []QuestionRequest {
+	result := make([]QuestionRequest, 0, len(questions))
+	for _, q := range questions {
+		options := make([]AnswerOptionRequest, 0, len(q.Options))
+		for _, o := range q.Options {
+			options = append(options, AnswerOptionRequest{
+				Number: o.Number,
+				Text:   o.Text,
+			})
+		}
+		result = append(result, QuestionRequest{
+			Text:                q.Text,
+			CorrectAnswerNumber: q.CorrectAnswerNumber,
+			Options:             options,
+		})
+	}
+	return result
+}
+
 func ToQuestions(reqs []QuestionRequest) []model.Question {
 	questions := make([]model.Question, 0, len(reqs))
 	for _, qr := range reqs {

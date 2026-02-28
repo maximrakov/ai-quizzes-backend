@@ -169,6 +169,37 @@ paths:
             Внутренняя ошибка сервера.
             Возможные причины: пользователь не найден, пользователь не является ментором.
 
+  /quiz/generate:
+    post:
+      summary: Сгенерировать квиз с помощью AI и сохранить его
+      description: >
+        Генерирует вопросы по заданной теме с помощью OpenAI и сохраняет квиз в базе данных.
+        Каждый вопрос содержит ровно 4 варианта ответа на русском языке.
+      tags:
+        - Quizzes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateQuestionsRequest'
+            example:
+              title: Квиз по основам Go
+              creator_id: 1
+              topic: Основы Go
+              count: 3
+      responses:
+        '201':
+          description: Квиз сгенерирован и сохранён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuizResponse'
+        '400':
+          description: Некорректный JSON, не указана тема или заголовок
+        '500':
+          description: Ошибка обращения к AI, разбора ответа или сохранения в БД
+
   /quiz/{quizId}:
     get:
       summary: Получить квиз по ID
@@ -403,6 +434,31 @@ components:
           items:
             $ref: '#/components/schemas/QuestionRequest'
           minItems: 1
+
+    GenerateQuestionsRequest:
+      type: object
+      required:
+        - title
+        - creator_id
+        - topic
+      properties:
+        title:
+          type: string
+          description: Название квиза
+          example: Квиз по основам Go
+        creator_id:
+          type: integer
+          description: ID пользователя с ролью mentor
+          example: 1
+        topic:
+          type: string
+          description: Тема, по которой нужно сгенерировать вопросы
+          example: Основы Go
+        count:
+          type: integer
+          description: Количество вопросов (по умолчанию 5)
+          example: 3
+          default: 5
 
     CreateAssignmentRequest:
       type: object

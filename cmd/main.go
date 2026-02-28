@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"os"
 
@@ -21,10 +22,13 @@ import (
 	attemptS "github.com/maximrakov/ai-quizzes-backend/internal/service/attempt"
 	quizS "github.com/maximrakov/ai-quizzes-backend/internal/service/quiz"
 	userS "github.com/maximrakov/ai-quizzes-backend/internal/service/user"
+	pkgai "github.com/maximrakov/ai-quizzes-backend/pkg/ai"
 )
 
 func main() {
-	_ = godotenv.Load()
+	if err := godotenv.Load(); err != nil {
+		log.Printf("warning: could not load .env file: %v", err)
+	}
 
 	ctx := context.Background()
 
@@ -53,9 +57,16 @@ func main() {
 	assignmentRepo := assignmentR.NewRepo(pg)
 	attemptRepo := attemptR.NewRepo(pg)
 
+	//ai client init
+	aiClient, err := pkgai.NewOpenAIClient()
+	if err != nil {
+		appCtx.Logger.Error("failed to init openai client", "error", err)
+		os.Exit(1)
+	}
+
 	//service init
 	userService := userS.NewService(userRepo)
-	quizService := quizS.NewService(quizRepo, userRepo)
+	quizService := quizS.NewService(quizRepo, userRepo, aiClient)
 	assignmentService := assignmentS.NewService(assignmentRepo, userRepo)
 	attemptService := attemptS.NewService(attemptRepo, assignmentRepo, quizRepo, userRepo)
 

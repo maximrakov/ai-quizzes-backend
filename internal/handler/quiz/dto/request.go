@@ -21,3 +21,10 @@ type AssignQuizRequest struct {
 	StudentId int `json:"student_id"`
 	MentorId  int `json:"mentor_id"`
 }
+
+type GenerateQuestionsRequest struct {
+	Title     string `json:"title"`
+	CreatorId int    `json:"creator_id"`
+	Topic     string `json:"topic"`
+	Count     int    `json:"count"`
+}

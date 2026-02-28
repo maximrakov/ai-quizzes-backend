@@ -13,6 +13,7 @@ type QuizHandler interface {
 	FindCreated(http.ResponseWriter, *http.Request)
 	FindAssigned(http.ResponseWriter, *http.Request)
 	FindByUserId(http.ResponseWriter, *http.Request)
+	Generate(http.ResponseWriter, *http.Request)
 }
 
 type AssignmentHandler interface {
@@ -29,6 +30,7 @@ func RegisterRoutes(mux *http.ServeMux, userHandler UserHandler, quizHandler Qui
 	mux.HandleFunc("POST /user", userHandler.Create)
 
 	mux.HandleFunc("POST /quiz", quizHandler.Create)
+	mux.HandleFunc("POST /quiz/generate", quizHandler.Generate)
 	mux.HandleFunc("GET /quiz", quizHandler.FindAll)
 	mux.HandleFunc("GET /quiz/{quizId}", quizHandler.FindById)
 	mux.HandleFunc("GET /user/{userId}/quizzes", quizHandler.FindByUserId)

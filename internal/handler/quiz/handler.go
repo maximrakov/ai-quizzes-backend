@@ -18,6 +18,7 @@ type Service interface {
 	FindById(ctx context.Context, id int) (*model.Quiz, error)
 	FindByCreatorId(ctx context.Context, creatorId int) ([]*model.Quiz, error)
 	FindByUserId(ctx context.Context, userId int) ([]*model.Quiz, error)
+	GenerateQuestions(ctx context.Context, topic string, count int) ([]model.Question, error)
 }
 
 type handler struct {
@@ -142,6 +143,44 @@ func (h *handler) FindAssigned(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	if err = json.NewEncoder(w).Encode(dto.ToQuizResponses(quizzes)); err != nil {
+		log.Printf("ошибка кодирования JSON: %v", err)
+	}
+}
+
+func (h *handler) Generate(w http.ResponseWriter, r *http.Request) {
+	var input dto.GenerateQuestionsRequest
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "некорректный json", http.StatusBadRequest)
+		return
+	}
+
+	if input.Topic == "" {
+		http.Error(w, "topic обязателен", http.StatusBadRequest)
+		return
+	}
+	if input.Title == "" {
+		http.Error(w, "title обязателен", http.StatusBadRequest)
+		return
+	}
+	if input.Count <= 0 {
+		input.Count = 5
+	}
+
+	questions, err := h.service.GenerateQuestions(r.Context(), input.Topic, input.Count)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	quiz, err := h.service.Create(r.Context(), input.Title, input.CreatorId, questions)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	if err = json.NewEncoder(w).Encode(dto.ToQuizResponse(quiz)); err != nil {
 		log.Printf("ошибка кодирования JSON: %v", err)
 	}
 }
