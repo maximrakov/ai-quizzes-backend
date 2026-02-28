@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: ai-quizzes-db
+    environment:
+      POSTGRES_USER: rm22
+      POSTGRES_PASSWORD: susupass22
+      POSTGRES_DB: ai-quizzes-db
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rm22 -d ai-quizzes-db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+  app:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+    image: ai-quiz
+    container_name: ai-quizzes-backend
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      POSTGRES_URL: "host=postgres port=5432 user=rm22 password=susupass22 dbname=ai-quizzes-db sslmode=disable"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+    volumes:
+      - ./app:/app
+
+volumes:
+  postgres_data:
+    name: postgres_data
+
+networks:
+  app-network:
+    driver: bridge
