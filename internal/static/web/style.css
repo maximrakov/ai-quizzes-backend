@@ -942,3 +942,43 @@ body.app-body {
   gap: 0.75rem;
   margin-top: 0.25rem;
 }
+
+/* ── Mentor: quiz attempts panel ──────────────────────────── */
+.quiz-attempts-panel {
+  border-top: 1px solid var(--border);
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+}
+
+.attempts-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.attempts-header,
+.attempts-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.attempts-header {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.attempts-row {
+  background: rgba(255,255,255,0.03);
+}
+
+.attempts-row:hover {
+  background: rgba(255,255,255,0.06);
+}

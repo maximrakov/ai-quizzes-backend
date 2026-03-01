@@ -28,6 +28,7 @@ type AssignmentHandler interface {
 type AttemptHandler interface {
 	Create(http.ResponseWriter, *http.Request)
 	FindByStudentId(http.ResponseWriter, *http.Request)
+	FindByQuizId(http.ResponseWriter, *http.Request)
 }
 
 func auth(secret string, h http.HandlerFunc) http.HandlerFunc {
@@ -57,4 +58,5 @@ func RegisterRoutes(mux *http.ServeMux, jwtSecret string, userHandler UserHandle
 
 	mux.HandleFunc("POST /attempt", auth(jwtSecret, attemptHandler.Create))
 	mux.HandleFunc("GET /user/{userId}/attempts", auth(jwtSecret, attemptHandler.FindByStudentId))
+	mux.HandleFunc("GET /quiz/{quizId}/attempts", auth(jwtSecret, attemptHandler.FindByQuizId))
 }

@@ -58,8 +58,9 @@ async function api(method, path, body) {
 // ── Navigation ─────────────────────────────────────────────
 const NAV = {
   mentor: [
-    { id: 'my-quizzes',   label: 'Мои квизы',    icon: navIconQuizzes() },
-    { id: 'create-quiz',  label: 'Создать квиз',  icon: navIconCreate()  },
+    { id: 'my-quizzes',      label: 'Мои квизы',            icon: navIconQuizzes() },
+    { id: 'create-quiz',     label: 'Создать квиз',          icon: navIconCreate()  },
+    { id: 'mentor-results',  label: 'Результаты студентов',  icon: navIconResults() },
   ],
   student: [
     { id: 'my-quizzes',  label: 'Мои квизы',      icon: navIconQuizzes() },
@@ -99,6 +100,9 @@ async function navigate(viewId) {
       break;
     case 'results':
       renderResults();
+      break;
+    case 'mentor-results':
+      renderMentorResults();
       break;
   }
 }
@@ -154,6 +158,87 @@ async function renderMentorQuizzes() {
 
   } catch (e) {
     main.innerHTML = errorState(`Не удалось загрузить квизы: ${e.message}`);
+  }
+}
+
+// ── Mentor: student results ────────────────────────────────
+async function renderMentorResults() {
+  const main = document.getElementById('main');
+  try {
+    const res = await api('GET', `/user/${userId}/quizzes/created`);
+    if (!res.ok) throw new Error(res.status);
+    const quizzes = await res.json();
+
+    if (!quizzes || quizzes.length === 0) {
+      main.innerHTML = pageHeader('Результаты студентов') + `
+        <div class="empty-state"><p>У вас нет созданных квизов.</p></div>`;
+      return;
+    }
+
+    main.innerHTML = pageHeader('Результаты студентов', quizzes.length) + `
+      <div class="quiz-list" id="results-list"></div>`;
+
+    document.getElementById('results-list').innerHTML = quizzes.map(quiz => `
+      <div class="quiz-card">
+        <div class="quiz-card-header">
+          <div class="quiz-card-info">
+            <h3>${esc(quiz.title)}</h3>
+            <span class="quiz-meta">${quiz.questions?.length ?? 0} вопросов · ID ${quiz.id}</span>
+          </div>
+          <button class="btn-outline btn-sm" onclick="loadQuizAttempts(${quiz.id}, 'quiz-attempts-${quiz.id}')">
+            Результаты
+          </button>
+        </div>
+        <div class="quiz-attempts-panel" id="quiz-attempts-${quiz.id}" hidden></div>
+      </div>`).join('');
+
+  } catch (e) {
+    main.innerHTML = errorState(`Не удалось загрузить квизы: ${e.message}`);
+  }
+}
+
+async function loadQuizAttempts(quizId, panelId) {
+  const panel = document.getElementById(panelId);
+  if (!panel.hidden) {
+    panel.hidden = true;
+    return;
+  }
+  panel.hidden = false;
+  panel.innerHTML = '<div class="page-loading" style="padding:1rem"><div class="spinner"></div></div>';
+
+  try {
+    const res = await api('GET', `/quiz/${quizId}/attempts`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const attempts = await res.json();
+
+    if (!attempts || attempts.length === 0) {
+      panel.innerHTML = '<p class="assign-empty">Ни один студент ещё не прошёл этот квиз.</p>';
+      return;
+    }
+
+    panel.innerHTML = `
+      <div class="attempts-table">
+        <div class="attempts-header">
+          <span>Студент</span>
+          <span>Результат</span>
+          <span>Правильно</span>
+          <span>Неправильно</span>
+        </div>
+        ${attempts.map(a => {
+          const cls          = a.score >= 70 ? 'score-good' : a.score >= 40 ? 'score-mid' : 'score-bad';
+          const correctCount = a.correct_question_ids?.length ?? 0;
+          const wrongCount   = a.wrong_question_ids?.length   ?? 0;
+          return `
+            <div class="attempts-row">
+              <span class="student-name">${esc(a.user.nickname)}</span>
+              <span><span class="score-pill ${cls}">${a.score.toFixed(0)}%</span></span>
+              <span class="summary-ok">✓ ${correctCount}</span>
+              <span class="summary-fail">✗ ${wrongCount}</span>
+            </div>`;
+        }).join('')}
+      </div>`;
+  } catch (e) {
+    panel.innerHTML = `<p class="error-state" style="margin:.75rem 0">${esc(e.message)}</p>`;
   }
 }
 
