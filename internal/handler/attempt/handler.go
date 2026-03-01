@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/maximrakov/ai-quizzes-backend/internal/handler/attempt/dto"
 	"github.com/maximrakov/ai-quizzes-backend/internal/model"
@@ -13,6 +14,7 @@ import (
 
 type Service interface {
 	Create(ctx context.Context, assignmentId int, answers []attemptS.UserAnswer) (*model.Attempt, error)
+	GetByStudentId(ctx context.Context, studentId int) ([]*model.Attempt, error)
 }
 
 type handler struct {
@@ -47,6 +49,31 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	if err = json.NewEncoder(w).Encode(dto.ToAttemptResponse(attempt)); err != nil {
+		log.Printf("ошибка кодирования JSON: %v", err)
+	}
+}
+
+func (h *handler) FindByStudentId(w http.ResponseWriter, r *http.Request) {
+	userIdStr := r.PathValue("userId")
+	userId, err := strconv.Atoi(userIdStr)
+	if err != nil {
+		http.Error(w, "некорректный id пользователя", http.StatusBadRequest)
+		return
+	}
+
+	attempts, err := h.service.GetByStudentId(context.Background(), userId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	result := make([]dto.AttemptResponse, 0, len(attempts))
+	for _, a := range attempts {
+		result = append(result, dto.ToAttemptResponse(a))
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err = json.NewEncoder(w).Encode(result); err != nil {
 		log.Printf("ошибка кодирования JSON: %v", err)
 	}
 }

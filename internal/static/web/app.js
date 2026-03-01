@@ -337,32 +337,44 @@ function closeModal() {
 }
 
 // ── Results view ───────────────────────────────────────────
-function renderResults() {
-  const main    = document.getElementById('main');
-  const results = getSavedResults();
+async function renderResults() {
+  const main = document.getElementById('main');
+  main.innerHTML = pageHeader('Мои результаты') + `<div class="empty-state"><p>Загрузка...</p></div>`;
 
-  if (results.length === 0) {
+  let attempts;
+  try {
+    const res = await api('GET', `/user/${userId}/attempts`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    attempts = await res.json();
+  } catch (e) {
+    main.innerHTML = pageHeader('Мои результаты') + `
+      <div class="empty-state"><p>Ошибка загрузки результатов: ${e.message}</p></div>`;
+    return;
+  }
+
+  if (!attempts || attempts.length === 0) {
     main.innerHTML = pageHeader('Мои результаты') + `
       <div class="empty-state"><p>Вы ещё не проходили ни одного квиза.</p></div>`;
     return;
   }
 
-  main.innerHTML = pageHeader('Мои результаты', results.length) + `
+  main.innerHTML = pageHeader('Мои результаты', attempts.length) + `
     <div class="quiz-list">
-      ${[...results].reverse().map(r => {
-        const cls = r.score >= 70 ? 'score-good' : r.score >= 40 ? 'score-mid' : 'score-bad';
+      ${[...attempts].reverse().map(a => {
+        const cls = a.score >= 70 ? 'score-good' : a.score >= 40 ? 'score-mid' : 'score-bad';
+        const correctCount = a.correct_question_ids?.length ?? 0;
+        const wrongCount   = a.wrong_question_ids?.length   ?? 0;
         return `
           <div class="quiz-card">
             <div class="quiz-card-header">
               <div class="quiz-card-info">
-                <h3>${esc(r.quizTitle)}</h3>
-                <span class="quiz-meta">${new Date(r.date).toLocaleDateString('ru-RU')}</span>
+                <h3>${esc(a.quiz.title)}</h3>
               </div>
-              <div class="score-pill ${cls}">${r.score.toFixed(0)}%</div>
+              <div class="score-pill ${cls}">${a.score.toFixed(0)}%</div>
             </div>
             <div class="result-summary">
-              <span class="summary-ok">✓ ${r.correctCount} правильно</span>
-              <span class="summary-fail">✗ ${r.wrongCount} неправильно</span>
+              <span class="summary-ok">✓ ${correctCount} правильно</span>
+              <span class="summary-fail">✗ ${wrongCount} неправильно</span>
             </div>
           </div>`;
       }).join('')}
