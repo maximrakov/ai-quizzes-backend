@@ -16,6 +16,7 @@ type Repository interface {
 	Create(ctx context.Context, assignment *model.Assignment) (*model.Assignment, error)
 	FindById(ctx context.Context, id int) (*model.Assignment, error)
 	FindByStudentId(ctx context.Context, studentId int) ([]*model.Assignment, error)
+	FindByQuizId(ctx context.Context, quizId int) ([]*model.Assignment, error)
 }
 
 type UserRepository interface {
@@ -57,4 +58,8 @@ func (s *service) FindById(ctx context.Context, id int) (*model.Assignment, erro
 
 func (s *service) FindByStudentId(ctx context.Context, studentId int) ([]*model.Assignment, error) {
 	return s.repo.FindByStudentId(ctx, studentId)
+}
+
+func (s *service) FindByQuizId(ctx context.Context, quizId int) ([]*model.Assignment, error) {
+	return s.repo.FindByQuizId(ctx, quizId)
 }

@@ -53,3 +53,30 @@ func (r *repository) FindByNickname(ctx context.Context, nickname string) (*mode
 
 	return user, nil
 }
+
+func (r *repository) FindAll(ctx context.Context, role string) ([]*model.User, error) {
+	var query string
+	var args []any
+	if role != "" {
+		query = "SELECT id, nickname, password, role FROM users WHERE role = $1 ORDER BY id"
+		args = []any{role}
+	} else {
+		query = "SELECT id, nickname, password, role FROM users ORDER BY id"
+	}
+
+	rows, err := r.postgres.Pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []*model.User
+	for rows.Next() {
+		u := &model.User{}
+		if err = rows.Scan(&u.Id, &u.Nickname, &u.Password, &u.Role); err != nil {
+			return nil, err
+		}
+		users = append(users, u)
+	}
+	return users, nil
+}

@@ -15,6 +15,7 @@ import (
 type Service interface {
 	Create(ctx context.Context, nickname, password string, role model.Role) (*model.User, error)
 	Login(ctx context.Context, nickname, password string) (string, error)
+	FindAll(ctx context.Context, role string) ([]*model.User, error)
 }
 
 type handler struct {
@@ -43,6 +44,20 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	if err = json.NewEncoder(w).Encode(dto.ToUserResponse(user)); err != nil {
+		log.Printf("Ошибка кодирования JSON: %v", err)
+	}
+}
+
+func (h *handler) FindAll(w http.ResponseWriter, r *http.Request) {
+	role := r.URL.Query().Get("role")
+	users, err := h.service.FindAll(context.Background(), role)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err = json.NewEncoder(w).Encode(dto.ToUserResponses(users)); err != nil {
 		log.Printf("Ошибка кодирования JSON: %v", err)
 	}
 }

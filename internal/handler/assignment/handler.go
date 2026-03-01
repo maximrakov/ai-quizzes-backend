@@ -17,6 +17,7 @@ type Service interface {
 	Create(ctx context.Context, quizId, studentId, mentorId int) (*model.Assignment, error)
 	FindById(ctx context.Context, id int) (*model.Assignment, error)
 	FindByStudentId(ctx context.Context, studentId int) ([]*model.Assignment, error)
+	FindByQuizId(ctx context.Context, quizId int) ([]*model.Assignment, error)
 }
 
 type handler struct {
@@ -64,6 +65,26 @@ func (h *handler) FindById(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	if err = json.NewEncoder(w).Encode(dto.ToAssignmentResponse(assignment)); err != nil {
+		log.Printf("ошибка кодирования JSON: %v", err)
+	}
+}
+
+func (h *handler) FindByQuizId(w http.ResponseWriter, r *http.Request) {
+	quizIdStr := r.PathValue("quizId")
+	quizId, err := strconv.Atoi(quizIdStr)
+	if err != nil {
+		http.Error(w, "некорректный id квиза", http.StatusBadRequest)
+		return
+	}
+
+	assignments, err := h.service.FindByQuizId(context.Background(), quizId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err = json.NewEncoder(w).Encode(dto.ToAssignmentResponses(assignments)); err != nil {
 		log.Printf("ошибка кодирования JSON: %v", err)
 	}
 }

@@ -130,6 +130,9 @@ async function renderMentorQuizzes() {
             <h3>${esc(quiz.title)}</h3>
             <span class="quiz-meta">${quiz.questions?.length ?? 0} вопросов · ID ${quiz.id}</span>
           </div>
+          <button class="btn-outline btn-sm" onclick="openAssignModal(${quiz.id}, '${esc(quiz.title)}')">
+            Назначить
+          </button>
         </div>
         <details class="quiz-accordion">
           <summary>Показать вопросы</summary>
@@ -537,6 +540,130 @@ async function submitAiQuiz(e) {
     btn.classList.remove('loading');
     btn.textContent = 'Сгенерировать снова';
   }
+}
+
+// ── Assign modal ───────────────────────────────────────────
+async function openAssignModal(quizId, quizTitle) {
+  const backdrop = document.getElementById('assign-backdrop');
+  const box      = document.getElementById('assign-box');
+
+  box.innerHTML = `
+    <h2 class="modal-title">Назначить квиз</h2>
+    <p class="assign-quiz-name">${esc(quizTitle)}</p>
+    <div class="page-loading"><div class="spinner"></div></div>`;
+  backdrop.classList.remove('hidden');
+
+  try {
+    const [studentsRes, assignmentsRes] = await Promise.all([
+      api('GET', '/user?role=student'),
+      api('GET', `/quiz/${quizId}/assignments`),
+    ]);
+
+    if (!studentsRes.ok || !assignmentsRes.ok) throw new Error('Ошибка загрузки данных');
+
+    const students    = await studentsRes.json()    ?? [];
+    const assignments = await assignmentsRes.json() ?? [];
+
+    const assignedIds = new Set(assignments.map(a => a.student_id));
+    const available   = students.filter(s => !assignedIds.has(s.id));
+
+    renderAssignForm(box, quizId, quizTitle, available);
+  } catch (e) {
+    box.innerHTML += `<div class="error-state" style="margin-top:1rem">${esc(e.message)}</div>
+      <div class="assign-actions" style="margin-top:1rem">
+        <button class="btn-ghost" onclick="closeAssignModal()">Закрыть</button>
+      </div>`;
+  }
+}
+
+function renderAssignForm(box, quizId, quizTitle, students) {
+  if (students.length === 0) {
+    box.innerHTML = `
+      <h2 class="modal-title">Назначить квиз</h2>
+      <p class="assign-quiz-name">${esc(quizTitle)}</p>
+      <p class="assign-empty">Все студенты уже получили этот квиз.</p>
+      <div class="assign-actions">
+        <button class="btn-ghost" onclick="closeAssignModal()">Закрыть</button>
+      </div>`;
+    return;
+  }
+
+  box.innerHTML = `
+    <h2 class="modal-title">Назначить квиз</h2>
+    <p class="assign-quiz-name">${esc(quizTitle)}</p>
+    <p class="assign-hint">Выберите одного или нескольких студентов:</p>
+    <div class="student-list" id="student-list">
+      ${students.map(s => `
+        <label class="student-row">
+          <input type="checkbox" class="student-cb" value="${s.id}" />
+          <span class="student-name">${esc(s.username)}</span>
+          <span class="student-id">ID ${s.id}</span>
+        </label>`).join('')}
+    </div>
+    <div id="assign-error"   class="error-msg"  hidden></div>
+    <div id="assign-success" class="success-msg" hidden></div>
+    <div class="assign-actions">
+      <button class="btn-ghost" onclick="closeAssignModal()">Отмена</button>
+      <button class="btn-primary" id="assign-btn"
+              style="width:auto;margin-top:0"
+              onclick="submitAssignment(${quizId})">Назначить</button>
+    </div>`;
+}
+
+function closeAssignModal() {
+  document.getElementById('assign-backdrop').classList.add('hidden');
+}
+
+async function submitAssignment(quizId) {
+  const errorEl   = document.getElementById('assign-error');
+  const successEl = document.getElementById('assign-success');
+  const btn       = document.getElementById('assign-btn');
+  errorEl.hidden = successEl.hidden = true;
+
+  const selected = [...document.querySelectorAll('.student-cb:checked')].map(cb => parseInt(cb.value));
+  if (selected.length === 0) {
+    errorEl.textContent = 'Выберите хотя бы одного студента.';
+    errorEl.hidden = false;
+    return;
+  }
+
+  btn.disabled = true;
+  btn.classList.add('loading');
+  btn.textContent = 'Назначение';
+
+  const failed = [];
+  for (const studentId of selected) {
+    const res = await api('POST', '/assignment', { quiz_id: quizId, student_id: studentId });
+    if (!res.ok) failed.push(studentId);
+  }
+
+  btn.disabled = false;
+  btn.classList.remove('loading');
+  btn.textContent = 'Назначить';
+
+  if (failed.length > 0) {
+    errorEl.textContent = `Не удалось назначить студентам: ${failed.join(', ')}.`;
+    errorEl.hidden = false;
+  }
+
+  const ok = selected.length - failed.length;
+  if (ok > 0) {
+    successEl.textContent = `Квиз назначен ${ok} студент${plural(ok, 'у', 'ам', 'ам')}.`;
+    successEl.hidden = false;
+    // uncheck assigned students
+    document.querySelectorAll('.student-cb:checked').forEach(cb => {
+      if (!failed.includes(parseInt(cb.value))) {
+        cb.closest('.student-row').remove();
+      }
+    });
+  }
+}
+
+function plural(n, one, few, many) {
+  const mod10 = n % 10, mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return one;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+  return many;
 }
 
 function renderGeneratedQuiz(quiz) {

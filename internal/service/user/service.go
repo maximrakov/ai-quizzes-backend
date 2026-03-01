@@ -13,6 +13,7 @@ var ErrInvalidCredentials = errors.New("invalid credentials")
 type Repository interface {
 	Create(ctx context.Context, user *model.User) (*model.User, error)
 	FindByNickname(ctx context.Context, nickname string) (*model.User, error)
+	FindAll(ctx context.Context, role string) ([]*model.User, error)
 }
 
 type service struct {
@@ -28,6 +29,10 @@ func (s *service) Create(ctx context.Context, nickname, password string, role mo
 	user := model.NewUser(nickname, password, role)
 	user, err := s.repo.Create(ctx, user)
 	return user, err
+}
+
+func (s *service) FindAll(ctx context.Context, role string) ([]*model.User, error) {
+	return s.repo.FindAll(ctx, role)
 }
 
 func (s *service) Login(ctx context.Context, nickname, password string) (string, error) {
