@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -22,6 +23,7 @@ import (
 	attemptS "github.com/maximrakov/ai-quizzes-backend/internal/service/attempt"
 	quizS "github.com/maximrakov/ai-quizzes-backend/internal/service/quiz"
 	userS "github.com/maximrakov/ai-quizzes-backend/internal/service/user"
+	"github.com/maximrakov/ai-quizzes-backend/internal/static"
 	pkgai "github.com/maximrakov/ai-quizzes-backend/pkg/ai"
 )
 
@@ -79,6 +81,14 @@ func main() {
 	//init server
 	mux := http.NewServeMux()
 	handler.RegisterRoutes(mux, appCtx.JwtSecret, userHandler, quizHandler, assignmentHandler, attemptHandler)
+
+	// serve embedded frontend
+	webFS, err := fs.Sub(static.Web, "web")
+	if err != nil {
+		appCtx.Logger.Error("failed to create sub FS for frontend", "error", err)
+		os.Exit(1)
+	}
+	mux.Handle("/", http.FileServerFS(webFS))
 
 	server := &http.Server{
 		Addr:    ":8080",

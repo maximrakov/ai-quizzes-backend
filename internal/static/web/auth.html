@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Quizzes — Вход / Регистрация</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="auth-card">
+    <h1 class="logo">AI Quizzes</h1>
+
+    <div class="tabs" role="tablist">
+      <button class="tab active" id="tab-login" role="tab" aria-selected="true" aria-controls="panel-login">
+        Вход
+      </button>
+      <button class="tab" id="tab-register" role="tab" aria-selected="false" aria-controls="panel-register">
+        Регистрация
+      </button>
+    </div>
+
+    <!-- Login -->
+    <section id="panel-login" class="panel" role="tabpanel" aria-labelledby="tab-login">
+      <form id="form-login" novalidate>
+        <div class="field">
+          <label for="login-username">Имя пользователя</label>
+          <input id="login-username" name="username" type="text" autocomplete="username"
+                 placeholder="ivan" required />
+        </div>
+        <div class="field">
+          <label for="login-password">Пароль</label>
+          <div class="input-wrap">
+            <input id="login-password" name="password" type="password" autocomplete="current-password"
+                   placeholder="••••••••" required />
+            <button type="button" class="toggle-pw" aria-label="Показать пароль" data-target="login-password">
+              <svg class="eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div id="login-error" class="error-msg" hidden></div>
+        <button type="submit" class="btn-primary" id="login-submit">Войти</button>
+      </form>
+    </section>
+
+    <!-- Register -->
+    <section id="panel-register" class="panel hidden" role="tabpanel" aria-labelledby="tab-register">
+      <form id="form-register" novalidate>
+        <div class="field">
+          <label for="reg-username">Имя пользователя</label>
+          <input id="reg-username" name="username" type="text" autocomplete="username"
+                 placeholder="ivan" required />
+        </div>
+        <div class="field">
+          <label for="reg-password">Пароль</label>
+          <div class="input-wrap">
+            <input id="reg-password" name="password" type="password" autocomplete="new-password"
+                   placeholder="••••••••" required minlength="6" />
+            <button type="button" class="toggle-pw" aria-label="Показать пароль" data-target="reg-password">
+              <svg class="eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="reg-role">Роль</label>
+          <div class="select-wrap">
+            <select id="reg-role" name="role" required>
+              <option value="student">Студент</option>
+              <option value="mentor">Ментор</option>
+            </select>
+          </div>
+        </div>
+        <div id="reg-error" class="error-msg" hidden></div>
+        <div id="reg-success" class="success-msg" hidden></div>
+        <button type="submit" class="btn-primary" id="reg-submit">Создать аккаунт</button>
+      </form>
+    </section>
+  </div>
+
+  <script src="auth.js"></script>
+</body>
+</html>
