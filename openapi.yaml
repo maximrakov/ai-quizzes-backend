@@ -191,7 +191,6 @@ paths:
               $ref: '#/components/schemas/CreateQuizRequest'
             example:
               title: Основы Go
-              creator_id: 1
               questions:
                 - text: Что такое горутина в Go?
                   correct_answer_number: 2
@@ -238,7 +237,6 @@ paths:
               $ref: '#/components/schemas/GenerateQuestionsRequest'
             example:
               title: Квиз по основам Go
-              creator_id: 1
               topic: Основы Go
               count: 3
       responses:
@@ -302,7 +300,6 @@ paths:
             example:
               quiz_id: 1
               student_id: 2
-              mentor_id: 1
       responses:
         '201':
           description: Назначение создано
@@ -523,16 +520,11 @@ components:
       type: object
       required:
         - title
-        - creator_id
         - questions
       properties:
         title:
           type: string
           example: Основы Go
-        creator_id:
-          type: integer
-          description: ID пользователя с ролью mentor
-          example: 1
         questions:
           type: array
           items:
@@ -543,17 +535,12 @@ components:
       type: object
       required:
         - title
-        - creator_id
         - topic
       properties:
         title:
           type: string
           description: Название квиза
           example: Квиз по основам Go
-        creator_id:
-          type: integer
-          description: ID пользователя с ролью mentor
-          example: 1
         topic:
           type: string
           description: Тема, по которой нужно сгенерировать вопросы
@@ -569,7 +556,6 @@ components:
       required:
         - quiz_id
         - student_id
-        - mentor_id
       properties:
         quiz_id:
           type: integer
@@ -579,10 +565,6 @@ components:
           type: integer
           description: ID пользователя с ролью student
           example: 2
-        mentor_id:
-          type: integer
-          description: ID пользователя с ролью mentor
-          example: 1
 
     AssignmentResponse:
       type: object

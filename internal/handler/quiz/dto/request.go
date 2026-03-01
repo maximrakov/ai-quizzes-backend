@@ -13,7 +13,6 @@ type QuestionRequest struct {
 
 type CreateQuizRequest struct {
 	Title     string            `json:"title"`
-	CreatorId int               `json:"creator_id"`
 	Questions []QuestionRequest `json:"questions"`
 }
 
@@ -23,8 +22,7 @@ type AssignQuizRequest struct {
 }
 
 type GenerateQuestionsRequest struct {
-	Title     string `json:"title"`
-	CreatorId int    `json:"creator_id"`
-	Topic     string `json:"topic"`
-	Count     int    `json:"count"`
+	Title string `json:"title"`
+	Topic string `json:"topic"`
+	Count int    `json:"count"`
 }

@@ -7,8 +7,10 @@ import (
 	"net/http"
 	"strconv"
 
+	roothandler "github.com/maximrakov/ai-quizzes-backend/internal/handler"
 	"github.com/maximrakov/ai-quizzes-backend/internal/handler/assignment/dto"
 	"github.com/maximrakov/ai-quizzes-backend/internal/model"
+	pkgjwt "github.com/maximrakov/ai-quizzes-backend/pkg/jwt"
 )
 
 type Service interface {
@@ -32,7 +34,8 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	assignment, err := h.service.Create(context.Background(), input.QuizId, input.StudentId, input.MentorId)
+	mentorId := r.Context().Value(roothandler.UserClaimsKey).(*pkgjwt.Claims).UserID
+	assignment, err := h.service.Create(context.Background(), input.QuizId, input.StudentId, mentorId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
