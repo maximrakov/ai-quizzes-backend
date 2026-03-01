@@ -841,3 +841,38 @@ body.app-body {
 .option-row input[type="text"]:focus { border-color: var(--accent); }
 
 .hint-inline { color: var(--muted); font-weight: 400; font-size: 0.8em; }
+
+/* ── Generated quiz preview ───────────────────────────────── */
+#ai-result {
+  max-width: 640px;
+  margin-top: 1.5rem;
+}
+
+.generated-quiz {
+  background: var(--surface);
+  border: 1px solid rgba(108, 99, 255, 0.35);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+
+.generated-quiz-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.generated-quiz-header h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.generated-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}

@@ -502,18 +502,19 @@ function renderAiForm() {
         <label for="ai-count">Количество вопросов</label>
         <input id="ai-count" type="number" value="5" min="1" max="20" required />
       </div>
-      <div id="ai-error"   class="error-msg"  hidden></div>
-      <div id="ai-success" class="success-msg" hidden></div>
+      <div id="ai-error" class="error-msg" hidden></div>
       <button type="submit" class="btn-primary" id="ai-btn">Сгенерировать</button>
-    </form>`;
+    </form>
+    <div id="ai-result" hidden></div>`;
 }
 
 async function submitAiQuiz(e) {
   e.preventDefault();
-  const errorEl   = document.getElementById('ai-error');
-  const successEl = document.getElementById('ai-success');
-  const btn       = document.getElementById('ai-btn');
-  errorEl.hidden = successEl.hidden = true;
+  const errorEl  = document.getElementById('ai-error');
+  const resultEl = document.getElementById('ai-result');
+  const btn      = document.getElementById('ai-btn');
+  errorEl.hidden = true;
+  resultEl.hidden = true;
 
   const title = document.getElementById('ai-title').value.trim();
   const topic = document.getElementById('ai-topic').value.trim();
@@ -527,18 +528,44 @@ async function submitAiQuiz(e) {
     const res = await api('POST', '/quiz/generate', { title, topic, count });
     if (!res.ok) throw new Error(`Ошибка ${res.status}`);
     const quiz = await res.json();
-    successEl.textContent = `Квиз «${quiz.title}» создан (${quiz.questions?.length ?? 0} вопросов)!`;
-    successEl.hidden = false;
-    e.target.reset();
-    document.getElementById('ai-count').value = 5;
+    renderGeneratedQuiz(quiz);
   } catch (err) {
     errorEl.textContent = err.message;
     errorEl.hidden = false;
   } finally {
     btn.disabled = false;
     btn.classList.remove('loading');
-    btn.textContent = 'Сгенерировать';
+    btn.textContent = 'Сгенерировать снова';
   }
+}
+
+function renderGeneratedQuiz(quiz) {
+  const resultEl = document.getElementById('ai-result');
+  resultEl.innerHTML = `
+    <div class="generated-quiz">
+      <div class="generated-quiz-header">
+        <div>
+          <h3>${esc(quiz.title)}</h3>
+          <span class="quiz-meta">${quiz.questions?.length ?? 0} вопросов · ID ${quiz.id}</span>
+        </div>
+        <span class="status-badge status-done">Сохранён</span>
+      </div>
+      <div class="generated-questions">
+        ${(quiz.questions ?? []).map((q, i) => `
+          <div class="question-view">
+            <p class="question-view-text">${i + 1}. ${esc(q.text)}</p>
+            <ul class="options-view">
+              ${(q.options ?? []).sort((a, b) => a.number - b.number).map(opt => `
+                <li class="${opt.number === q.correct_answer_number ? 'opt-correct' : 'opt-normal'}">
+                  ${opt.number}. ${esc(opt.text)}
+                  ${opt.number === q.correct_answer_number ? '<span class="checkmark">✓</span>' : ''}
+                </li>`).join('')}
+            </ul>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  resultEl.hidden = false;
+  resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // ── localStorage ───────────────────────────────────────────
