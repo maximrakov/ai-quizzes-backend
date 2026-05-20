@@ -11,7 +11,7 @@ paths:
     post:
       summary: Создать пользователя
       tags:
-        - Users
+        - Auth
       requestBody:
         required: true
         content:
@@ -34,11 +34,44 @@ paths:
         '500':
           description: Внутренняя ошибка сервера
 
+  /auth/login:
+    post:
+      summary: Получить JWT токен
+      description: >
+        Аутентификация по логину и паролю. Возвращает JWT токен,
+        который необходимо передавать в заголовке Authorization для защищённых маршрутов.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              username: ivan
+              password: secret123
+      responses:
+        '200':
+          description: Токен выдан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Некорректный JSON
+        '401':
+          description: Неверный логин или пароль
+        '500':
+          description: Внутренняя ошибка сервера
+
   /user/{userId}/quizzes:
     get:
       summary: Получить квизы пользователя (назначенные)
       tags:
         - Users
+      security:
+        - bearerAuth: []
       parameters:
         - name: userId
           in: path
@@ -57,6 +90,8 @@ paths:
                   $ref: '#/components/schemas/QuizResponse'
         '400':
           description: Некорректный ID пользователя
+        '401':
+          description: Не передан или недействителен токен авторизации
         '500':
           description: Внутренняя ошибка сервера
 
@@ -65,6 +100,8 @@ paths:
       summary: Получить квизы, созданные ментором
       tags:
         - Users
+      security:
+        - bearerAuth: []
       parameters:
         - name: userId
           in: path
@@ -83,6 +120,8 @@ paths:
                   $ref: '#/components/schemas/QuizResponse'
         '400':
           description: Некорректный ID пользователя
+        '401':
+          description: Не передан или недействителен токен авторизации
         '500':
           description: Внутренняя ошибка сервера
 
@@ -91,6 +130,8 @@ paths:
       summary: Получить квизы, назначенные студенту
       tags:
         - Users
+      security:
+        - bearerAuth: []
       parameters:
         - name: userId
           in: path
@@ -109,6 +150,8 @@ paths:
                   $ref: '#/components/schemas/QuizResponse'
         '400':
           description: Некорректный ID пользователя
+        '401':
+          description: Не передан или недействителен токен авторизации
         '500':
           description: Внутренняя ошибка сервера
 
@@ -117,6 +160,8 @@ paths:
       summary: Получить все квизы
       tags:
         - Quizzes
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: Список всех квизов
@@ -126,6 +171,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/QuizResponse'
+        '401':
+          description: Не передан или недействителен токен авторизации
         '500':
           description: Внутренняя ошибка сервера
 
@@ -134,6 +181,8 @@ paths:
       description: Создать квиз может только пользователь с ролью mentor.
       tags:
         - Quizzes
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -142,7 +191,6 @@ paths:
               $ref: '#/components/schemas/CreateQuizRequest'
             example:
               title: Основы Go
-              creator_id: 1
               questions:
                 - text: Что такое горутина в Go?
                   correct_answer_number: 2
@@ -164,6 +212,8 @@ paths:
                 $ref: '#/components/schemas/QuizResponse'
         '400':
           description: Некорректный JSON
+        '401':
+          description: Не передан или недействителен токен авторизации
         '500':
           description: >
             Внутренняя ошибка сервера.
@@ -177,6 +227,8 @@ paths:
         Каждый вопрос содержит ровно 4 варианта ответа на русском языке.
       tags:
         - Quizzes
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -185,7 +237,6 @@ paths:
               $ref: '#/components/schemas/GenerateQuestionsRequest'
             example:
               title: Квиз по основам Go
-              creator_id: 1
               topic: Основы Go
               count: 3
       responses:
@@ -197,6 +248,8 @@ paths:
                 $ref: '#/components/schemas/QuizResponse'
         '400':
           description: Некорректный JSON, не указана тема или заголовок
+        '401':
+          description: Не передан или недействителен токен авторизации
         '500':
           description: Ошибка обращения к AI, разбора ответа или сохранения в БД
 
@@ -205,6 +258,8 @@ paths:
       summary: Получить квиз по ID
       tags:
         - Quizzes
+      security:
+        - bearerAuth: []
       parameters:
         - name: quizId
           in: path
@@ -221,6 +276,8 @@ paths:
                 $ref: '#/components/schemas/QuizResponse'
         '400':
           description: Некорректный ID квиза
+        '401':
+          description: Не передан или недействителен токен авторизации
         '500':
           description: Внутренняя ошибка сервера
 
@@ -232,6 +289,8 @@ paths:
         Квиз может быть назначен только пользователю с ролью student.
       tags:
         - Assignments
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -241,7 +300,6 @@ paths:
             example:
               quiz_id: 1
               student_id: 2
-              mentor_id: 1
       responses:
         '201':
           description: Назначение создано
@@ -251,6 +309,8 @@ paths:
                 $ref: '#/components/schemas/AssignmentResponse'
         '400':
           description: Некорректный JSON
+        '401':
+          description: Не передан или недействителен токен авторизации
         '500':
           description: >
             Внутренняя ошибка сервера.
@@ -262,6 +322,8 @@ paths:
       summary: Получить назначение по ID
       tags:
         - Assignments
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -278,6 +340,8 @@ paths:
                 $ref: '#/components/schemas/AssignmentResponse'
         '400':
           description: Некорректный ID назначения
+        '401':
+          description: Не передан или недействителен токен авторизации
         '500':
           description: Внутренняя ошибка сервера
 
@@ -286,6 +350,8 @@ paths:
       summary: Получить назначения студента
       tags:
         - Assignments
+      security:
+        - bearerAuth: []
       parameters:
         - name: userId
           in: path
@@ -304,6 +370,8 @@ paths:
                   $ref: '#/components/schemas/AssignmentResponse'
         '400':
           description: Некорректный ID пользователя
+        '401':
+          description: Не передан или недействителен токен авторизации
         '500':
           description: Внутренняя ошибка сервера
 
@@ -316,6 +384,8 @@ paths:
         отвеченных вопросов, а также итоговым баллом (0–100).
       tags:
         - Attempts
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -338,13 +408,44 @@ paths:
                 $ref: '#/components/schemas/AttemptResponse'
         '400':
           description: Некорректный JSON
+        '401':
+          description: Не передан или недействителен токен авторизации
         '500':
           description: >
             Внутренняя ошибка сервера.
             Возможные причины: назначение не найдено, квиз не найден, пользователь не найден.
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        JWT токен, полученный через POST /auth/login.
+        Передавать в заголовке: Authorization: Bearer <token>
+
   schemas:
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: ivan
+        password:
+          type: string
+          example: secret123
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
     RegisterRequest:
       type: object
       required:
@@ -419,16 +520,11 @@ components:
       type: object
       required:
         - title
-        - creator_id
         - questions
       properties:
         title:
           type: string
           example: Основы Go
-        creator_id:
-          type: integer
-          description: ID пользователя с ролью mentor
-          example: 1
         questions:
           type: array
           items:
@@ -439,17 +535,12 @@ components:
       type: object
       required:
         - title
-        - creator_id
         - topic
       properties:
         title:
           type: string
           description: Название квиза
           example: Квиз по основам Go
-        creator_id:
-          type: integer
-          description: ID пользователя с ролью mentor
-          example: 1
         topic:
           type: string
           description: Тема, по которой нужно сгенерировать вопросы
@@ -465,7 +556,6 @@ components:
       required:
         - quiz_id
         - student_id
-        - mentor_id
       properties:
         quiz_id:
           type: integer
@@ -475,10 +565,6 @@ components:
           type: integer
           description: ID пользователя с ролью student
           example: 2
-        mentor_id:
-          type: integer
-          description: ID пользователя с ролью mentor
-          example: 1
 
     AssignmentResponse:
       type: object

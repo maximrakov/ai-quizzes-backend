@@ -7,8 +7,10 @@ import (
 	"net/http"
 	"strconv"
 
+	roothandler "github.com/maximrakov/ai-quizzes-backend/internal/handler"
 	"github.com/maximrakov/ai-quizzes-backend/internal/handler/quiz/dto"
 	"github.com/maximrakov/ai-quizzes-backend/internal/model"
+	pkgjwt "github.com/maximrakov/ai-quizzes-backend/pkg/jwt"
 )
 
 type Service interface {
@@ -29,6 +31,10 @@ func NewHandler(service Service) *handler {
 	return &handler{service: service}
 }
 
+func claimsFromCtx(r *http.Request) *pkgjwt.Claims {
+	return r.Context().Value(roothandler.UserClaimsKey).(*pkgjwt.Claims)
+}
+
 func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 	var input dto.CreateQuizRequest
 
@@ -37,8 +43,9 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	creatorId := claimsFromCtx(r).UserID
 	questions := dto.ToQuestions(input.Questions)
-	quiz, err := h.service.Create(context.Background(), input.Title, input.CreatorId, questions)
+	quiz, err := h.service.Create(context.Background(), input.Title, creatorId, questions)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -172,7 +179,8 @@ func (h *handler) Generate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	quiz, err := h.service.Create(r.Context(), input.Title, input.CreatorId, questions)
+	creatorId := claimsFromCtx(r).UserID
+	quiz, err := h.service.Create(r.Context(), input.Title, creatorId, questions)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

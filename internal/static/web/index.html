@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Quizzes</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="app-body">
+
+  <div class="app-shell">
+
+    <!-- Top bar -->
+    <header class="topbar">
+      <span class="topbar-logo">AI Quizzes</span>
+      <div class="topbar-right">
+        <span class="role-badge" id="role-badge"></span>
+        <span class="topbar-username" id="topbar-username"></span>
+        <button class="btn-ghost" id="logout-btn">Выйти</button>
+      </div>
+    </header>
+
+    <div class="app-layout">
+
+      <!-- Sidebar -->
+      <nav class="sidebar" id="sidebar"></nav>
+
+      <!-- Main -->
+      <main class="main-content" id="main"></main>
+
+    </div>
+  </div>
+
+  <!-- Quiz-taking overlay (full screen) -->
+  <div class="overlay hidden" id="quiz-overlay">
+    <div class="overlay-inner" id="quiz-container"></div>
+  </div>
+
+  <!-- Result modal -->
+  <div class="modal-backdrop hidden" id="modal-backdrop">
+    <div class="modal-box" id="modal-box"></div>
+  </div>
+
+  <!-- Assign modal -->
+  <div class="modal-backdrop hidden" id="assign-backdrop">
+    <div class="modal-box" id="assign-box"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -2,12 +2,40 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"log/slog"
 	"net"
 	"net/http"
+	"strings"
 	"time"
+
+	pkgjwt "github.com/maximrakov/ai-quizzes-backend/pkg/jwt"
 )
+
+type contextKey string
+
+const UserClaimsKey contextKey = "user_claims"
+
+func AuthMiddleware(secret string, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+			http.Error(w, "отсутствует токен авторизации", http.StatusUnauthorized)
+			return
+		}
+
+		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+		claims, err := pkgjwt.Parse(tokenStr, secret)
+		if err != nil {
+			http.Error(w, "недействительный токен", http.StatusUnauthorized)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), UserClaimsKey, claims)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
 
 type responseWriter struct {
 	http.ResponseWriter

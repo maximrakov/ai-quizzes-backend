@@ -56,3 +56,23 @@ func (r *repository) FindByStudentId(ctx context.Context, studentId int) ([]*mod
 	}
 	return assignments, nil
 }
+
+func (r *repository) FindByQuizId(ctx context.Context, quizId int) ([]*model.Assignment, error) {
+	rows, err := r.postgres.Pool.Query(ctx,
+		"SELECT id, quiz_id, student_id FROM assignments WHERE quiz_id = $1", quizId,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var assignments []*model.Assignment
+	for rows.Next() {
+		a := &model.Assignment{}
+		if err = rows.Scan(&a.Id, &a.QuizId, &a.StudentId); err != nil {
+			return nil, err
+		}
+		assignments = append(assignments, a)
+	}
+	return assignments, nil
+}

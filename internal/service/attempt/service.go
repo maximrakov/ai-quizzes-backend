@@ -16,6 +16,8 @@ type UserAnswer struct {
 
 type Repository interface {
 	Create(ctx context.Context, attempt *model.Attempt) (*model.Attempt, error)
+	FindByStudentId(ctx context.Context, studentId int) ([]*model.Attempt, error)
+	FindByQuizId(ctx context.Context, quizId int) ([]*model.Attempt, error)
 }
 
 type AssignmentRepository interface {
@@ -44,6 +46,14 @@ func NewService(repo Repository, assignmentRepo AssignmentRepository, quizRepo Q
 		quizRepo:       quizRepo,
 		userRepo:       userRepo,
 	}
+}
+
+func (s *service) GetByStudentId(ctx context.Context, studentId int) ([]*model.Attempt, error) {
+	return s.repo.FindByStudentId(ctx, studentId)
+}
+
+func (s *service) GetByQuizId(ctx context.Context, quizId int) ([]*model.Attempt, error) {
+	return s.repo.FindByQuizId(ctx, quizId)
 }
 
 func (s *service) Create(ctx context.Context, assignmentId int, answers []UserAnswer) (*model.Attempt, error) {
